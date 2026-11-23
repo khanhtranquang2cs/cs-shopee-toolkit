@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shopee CS Toolkit</title>
+  <link rel="stylesheet" href="sidepanel.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand-row">
+      <h1 class="brand-title">Shopee CS Toolkit</h1>
+      <span class="brand-meta">Side Panel</span>
+    </div>
+    <nav class="tab-bar" role="tablist" aria-label="Công cụ hỗ trợ CS Shopee">
+      <button
+        type="button"
+        id="tabBtnDms"
+        class="tab-btn active"
+        role="tab"
+        aria-selected="true"
+        aria-controls="panelDms"
+        data-tab="dms"
+      >
+        DMS Tracking
+      </button>
+      <button
+        type="button"
+        id="tabBtnExtractor"
+        class="tab-btn"
+        role="tab"
+        aria-selected="false"
+        aria-controls="panelExtractor"
+        data-tab="extractor"
+      >
+        Tách mã đơn
+      </button>
+      <button
+        type="button"
+        id="tabBtnInvoice"
+        class="tab-btn"
+        role="tab"
+        aria-selected="false"
+        aria-controls="panelInvoice"
+        data-tab="invoice"
+      >
+        Hóa đơn
+      </button>
+    </nav>
+  </header>
+
+  <main class="app-main">
+    <!-- TAB 1: DMS TRACKING -->
+    <section id="panelDms" class="tab-panel active" role="tabpanel" aria-labelledby="tabBtnDms">
+      <div class="section-head">
+        <h2>Shopee DMS Tracking</h2>
+        <span id="dmsDetectedCount" class="count-text">0 mã đơn</span>
+      </div>
+
+      <div class="input-toolbar">
+        <label for="orderInput">Danh sách mã đơn hàng hoặc đoạn chat chứa mã:</label>
+        <button type="button" id="dmsExtractBtn" class="btn-inline" title="Lọc nhanh mã đơn hàng hợp lệ từ nội dung đang dán">
+          Tách mã đơn
+        </button>
+      </div>
+      <textarea
+        id="orderInput"
+        class="code-textarea dms-textarea"
+        placeholder="Dán danh sách mã đơn (mỗi mã 1 dòng) hoặc dán trực tiếp đoạn chat/log chứa mã đơn..."
+      ></textarea>
+
+      <div class="inline-option-row">
+        <label class="checkbox-label">
+          <input type="checkbox" id="dmsAutoExtract" checked />
+          <span>Tự động tách &amp; lọc trùng mã đơn khi chạy</span>
+        </label>
+        <button type="button" id="dmsClearInputBtn" class="btn-link">Xóa ô nhập</button>
+      </div>
+
+      <details class="config-box">
+        <summary>Cài đặt Selector &amp; Luồng chạy</summary>
+        <div class="config-body">
+          <div class="field">
+            <label for="targetUrl">URL trang tra cứu:</label>
+            <input type="text" id="targetUrl" value="https://dms.cs.shopee.vn/" />
+          </div>
+          <div class="field">
+            <label for="inputSelector">CSS Selector ô nhập mã:</label>
+            <input type="text" id="inputSelector" value="input.pcs-input__input" />
+          </div>
+          <div class="field">
+            <label for="firstResultSelector">CSS Selector kết quả đầu tiên (để trống = ưu tiên div[url^="/info/order/"]):</label>
+            <input type="text" id="firstResultSelector" placeholder='Mặc định: div[url^="/info/order/"]' />
+          </div>
+          <div class="field">
+            <label class="checkbox-label">
+              <input type="checkbox" id="autoClickFirst" checked />
+              <span>Tự động click kết quả đầu tiên sau khi Enter</span>
+            </label>
+          </div>
+          <div class="field">
+            <label for="labelKeyword">Nhãn kết quả cần lấy:</label>
+            <input type="text" id="labelKeyword" value="Shipping Tracking Number" />
+          </div>
+          <div class="field">
+            <label for="delayMs">Thời gian chờ giữa các đơn (ms):</label>
+            <input type="number" id="delayMs" value="1000" min="200" step="100" />
+          </div>
+          <div class="field">
+            <label class="checkbox-label">
+              <input type="checkbox" id="reuseTab" checked />
+              <span>Dùng lại 1 tab tra cứu trong suốt phiên chạy</span>
+            </label>
+          </div>
+          <div class="field">
+            <label class="checkbox-label">
+              <input type="checkbox" id="closeTabsOnComplete" checked />
+              <span>Tự động đóng tab tra cứu sau khi hoàn tất</span>
+            </label>
+          </div>
+        </div>
+      </details>
+
+      <div class="actions">
+        <button type="button" id="startBtn" class="btn btn-primary flex-1">Bắt đầu tra cứu</button>
+        <button type="button" id="stopBtn" class="btn btn-danger" disabled>Dừng</button>
+      </div>
+
+      <div id="statusBar" class="status-bar" role="status" aria-live="polite"></div>
+
+      <div class="actions">
+        <button type="button" id="copyBtn" class="btn btn-sec">Copy Excel</button>
+        <button type="button" id="csvBtn" class="btn btn-sec">Tải CSV</button>
+        <button type="button" id="clearBtn" class="btn btn-sec">Xóa bảng</button>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th class="col-idx">#</th>
+              <th>Mã đơn hàng</th>
+              <th>Mã vận đơn</th>
+              <th class="col-status">Trạng thái</th>
+            </tr>
+          </thead>
+          <tbody id="resultBody">
+            <tr class="empty-row">
+              <td colspan="4">Chưa có dữ liệu tra cứu.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <details class="logs-details">
+        <summary>
+          <span>Nhật ký chạy (Logs)</span>
+          <span id="logCount" class="log-count">0 dòng</span>
+        </summary>
+        <div class="logs-toolbar">
+          <button type="button" id="copyLogBtn" class="btn-inline">Copy Logs</button>
+          <button type="button" id="clearLogBtn" class="btn-inline">Xóa Logs</button>
+        </div>
+        <div id="logBox" class="log-box"></div>
+      </details>
+    </section>
+
+    <!-- TAB 2: TÁCH MÃ ĐƠN HÀNG -->
+    <section id="panelExtractor" class="tab-panel" role="tabpanel" aria-labelledby="tabBtnExtractor" hidden>
+      <div class="section-head">
+        <h2>Tách mã đơn hàng</h2>
+        <span class="count-text">6 số + 8 ký tự</span>
+      </div>
+
+      <div class="input-toolbar">
+        <label for="extInputText">Đoạn văn bản đầu vào:</label>
+        <button type="button" id="extClearBtn" class="btn-link">Xóa hết</button>
+      </div>
+      <textarea
+        id="extInputText"
+        class="ext-textarea"
+        placeholder="Dán đoạn chat, email hoặc log chứa mã đơn hàng vào đây..."
+      ></textarea>
+
+      <div class="ext-controls">
+        <label class="checkbox-label">
+          <input type="checkbox" id="extDedupe" checked />
+          <span>Lọc bỏ mã trùng</span>
+        </label>
+        <div class="sep-select-wrap">
+          <label for="extSeparator" class="sep-label">Ngăn cách:</label>
+          <select id="extSeparator" class="sep-select">
+            <option value="comma" selected>Dấu phẩy (,)</option>
+            <option value="newline">Xuống dòng</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="button" id="extRunBtn" class="btn btn-primary flex-1">Tách mã đơn</button>
+      </div>
+
+      <label for="extOutputText" class="field-label">Kết quả:</label>
+      <textarea
+        id="extOutputText"
+        class="code-textarea ext-output"
+        readonly
+        placeholder="Danh sách mã đơn sẽ hiển thị tại đây..."
+      ></textarea>
+
+      <div id="extStatus" class="ext-status" role="status" aria-live="polite"></div>
+
+      <div class="actions">
+        <button type="button" id="extCopyBtn" class="btn btn-success flex-1">Sao chép kết quả</button>
+        <button type="button" id="extSendToDmsBtn" class="btn btn-sec">Đưa sang DMS</button>
+      </div>
+    </section>
+
+    <!-- TAB 3: TRA CỨU MÃ HÓA ĐƠN -->
+    <section id="panelInvoice" class="tab-panel" role="tabpanel" aria-labelledby="tabBtnInvoice" hidden>
+      <div class="section-head">
+        <h2>Tra cứu mã hóa đơn</h2>
+        <span id="invPeriodCount" class="count-text">Chưa tải kỳ</span>
+      </div>
+
+      <div class="field">
+        <label for="invShopId">Shop ID (số):</label>
+        <input
+          type="text"
+          id="invShopId"
+          inputmode="numeric"
+          placeholder="VD: 1407993795 hoặc 773658403"
+        />
+      </div>
+
+      <div class="input-toolbar" style="margin-top: 8px;">
+        <label>Chọn kỳ hóa đơn (tick nhiều tháng):</label>
+        <button type="button" id="invLoadPeriodsBtn" class="btn-inline">
+          Tải kỳ từ Sheet gốc
+        </button>
+      </div>
+
+      <div class="inv-filter-row">
+        <select id="invYearSelect" aria-label="Lọc theo năm">
+          <option value="all">Tất cả năm</option>
+        </select>
+        <button type="button" id="invSelectAllBtn" class="btn-inline">Chọn hết</button>
+        <button type="button" id="invClearSelectBtn" class="btn-inline">Bỏ chọn</button>
+      </div>
+
+      <div id="invPeriodList" class="inv-period-list" role="group" aria-label="Danh sách kỳ hóa đơn">
+        <div class="inv-period-empty">Bấm "Tải kỳ từ Sheet gốc" để nạp danh sách Năm - Tháng.</div>
+      </div>
+
+      <div id="invSelectedMeta" class="inv-meta-note">
+        Sheet gốc: Fin input (cột A = Năm, B = Tháng, C = Link tracker tháng).
+      </div>
+
+      <details class="config-box">
+        <summary>Cài đặt Google Sheets Hóa đơn</summary>
+        <div class="config-body">
+          <div class="field">
+            <label for="invMasterUrl">URL Sheet tổng hợp (cột A, B, C):</label>
+            <input
+              type="text"
+              id="invMasterUrl"
+              value="https://docs.google.com/spreadsheets/d/1SMiD2joWfYTNrkt9vS1TyiyNM2GOkxenODCwbF08JZs/edit?gid=0#gid=0"
+            />
+          </div>
+          <div class="field">
+            <label for="invTargetSheetName">Tên sheet hóa đơn chính (bỏ 3 cột đầu, lấy hết cột sau):</label>
+            <input type="text" id="invTargetSheetName" value="Hoa don gui PN" />
+          </div>
+          <div class="field">
+            <label for="invAmsSheetKeyword">Từ khóa sheet Phí dịch vụ AMS (loại trừ "AMS Service fee"):</label>
+            <input type="text" id="invAmsSheetKeyword" value="_AMS" />
+          </div>
+          <div class="field">
+            <label class="checkbox-label">
+              <input type="checkbox" id="invCloseTabs" checked />
+              <span>Tự động đóng tab Google Sheet sau khi hoàn tất</span>
+            </label>
+          </div>
+        </div>
+      </details>
+
+      <div class="actions">
+        <button type="button" id="invSearchBtn" class="btn btn-primary flex-1">Tra cứu hóa đơn</button>
+        <button type="button" id="invStopBtn" class="btn btn-danger" disabled>Dừng</button>
+        <button type="button" id="invOpenMonthBtn" class="btn btn-sec" disabled>Mở Sheet</button>
+      </div>
+
+      <div id="invStatusBar" class="status-bar" role="status" aria-live="polite"></div>
+
+      <div id="invResultCard" class="inv-result-card" hidden>
+        <div id="invResultList" class="inv-result-list"></div>
+
+        <label for="invOutputText" class="field-label" style="margin-top: 8px;">Nội dung xuất nhanh (tất cả kỳ đã chọn):</label>
+        <textarea id="invOutputText" class="code-textarea inv-output" readonly></textarea>
+
+        <div class="actions" style="margin-bottom: 0;">
+          <button type="button" id="invCopyBtn" class="btn btn-success flex-1">Sao chép tất cả kết quả</button>
+        </div>
+      </div>
+
+      <details class="logs-details">
+        <summary>
+          <span>Nhật ký tra cứu hóa đơn (Logs)</span>
+          <span id="invLogCount" class="log-count">0 dòng</span>
+        </summary>
+        <div class="logs-toolbar">
+          <button type="button" id="invCopyLogBtn" class="btn-inline">Copy Logs</button>
+          <button type="button" id="invClearLogBtn" class="btn-inline">Xóa Logs</button>
+        </div>
+        <div id="invLogBox" class="log-box"></div>
+      </details>
+    </section>
+  </main>
+
+  <script src="sidepanel.js"></script>
+</body>
+</html>

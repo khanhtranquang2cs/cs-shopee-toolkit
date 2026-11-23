@@ -1,0 +1,38 @@
+{
+  "manifest_version": 3,
+  "name": "Shopee CS Toolkit",
+  "version": "2.4.0",
+  "description": "Tiện ích Chrome tổng hợp hỗ trợ CS Shopee: Tra cứu mã vận đơn DMS, Tách mã đơn hàng và Tra cứu mã hóa đơn Google Sheets.",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "permissions": [
+    "sidePanel",
+    "tabs",
+    "scripting",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://dms.cs.shopee.vn/*",
+    "https://*.shopee.vn/*",
+    "https://docs.google.com/*",
+    "https://*.googleusercontent.com/*",
+    "https://drive.google.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "action": {
+    "default_title": "Mở Shopee CS Toolkit",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  }
+}
